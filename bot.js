@@ -91,7 +91,7 @@ om.on('connected',function(){
     messageReceived = false;
     messagesSent = 0;
     omegle_bot.socket.emit("event", {event: "connected to stranger"});
-    var initialMessage = _.sample(["hi", "hello", "hey", "hi, how's it going?", "hi, how are you?", 'nice to meet you.', 'How are you doing today?']);
+    var initialMessage = _.sample(trainingEntries.initialMessages);
     simulateReply(initialMessage, true, initialMessageDelay);
     idleTimeout = setTimeout(function(){
         if ( !messageReceived && isRoomActive ){
@@ -112,7 +112,7 @@ var simulateReply = function(message, required, delay){
 setInterval(function(){
     if ( messageQueue.length && isRoomActive ){
         if ( (messageReceived) || (!messageReceived && messagesSent == 0) ){
-            om.startTyping();
+            //om.startTyping();
             messageQueue = _.map(messageQueue, function(item){
                 item.delay = item.delay - 1000;
                 return item;
@@ -127,7 +127,7 @@ setInterval(function(){
                 return memo;
             }, "");
             if ( nextMessage != "" ){
-                om.stopTyping();
+                //om.stopTyping();
                 if ( (isBotActive && isRoomActive) || (!isBotActive && isRoomActive && isRequired) ){
                     messagesSent = true;
                     omegle_bot.socket.emit("chat", { source: "Bot", message: nextMessage });
@@ -186,9 +186,9 @@ om.on("commonLikes", function(likes){
     
     var followUpMessage;
     if ( likes.length > 1 ){
-        followUpMessage = _.sample(["I see you got multiple interests; ", "I see we both like; ", "hey we got this in common; "]) + _.take(likes, 2).join(" and ");
+        followUpMessage = _.sample(trainingEntries.followUpMessagesMulti) + _.take(likes, 2).join(" and ");
     } else {
-        followUpMessage = _.sample(["you like ", "i see we both like ", "", "I see we're both interested in "]) + _.first(likes) + "?";
+        followUpMessage = _.sample(trainingEntries.followUpMessagesSingle) + _.first(likes) + "?";
     }
     simulateReply(followUpMessage, true, followUpDelay);
 

@@ -1,5 +1,8 @@
 {
     "likes": ["420", "politics", "political", "movies", "music", "miami", "broward", "florida", "programming", "developer"],
+    "initialMessages": ["hi", "hello", "hey", "hi, how's it going?", "hi, how are you?", "nice to meet you.", "How are you doing?"],
+    "followUpMessagesSingle": ["you like ", "i see we both like ", "", "I see we're both interested in ", "interested in "],
+    "followUpMessagesMulti": ["I see you also like ", "I see we both like ", "hey, i seee we got in common "],
     "topics": {
         "age": ["how old are you", "age"],
         "name": [ "what is your name", "what are you called", "name?"],
