@@ -66,6 +66,7 @@ om.on('waiting', function(){
 
 om.on("recaptchaRequired", function(challenge){
     console.log("recaptchaRequired", challenge);
+    omegle_bot.emit("recaptchaRequired", { challenge: challenge });
 });
 
 var isRoomActive = false;
@@ -99,7 +100,7 @@ var simulateReply = function(message){
     var typingDelay = 2000 + ((message.split(" ").length -1) * wpms);
     omegle_bot.emit("events", { event: "Reply in " + typingDelay + "ms - " + message });
     om.startTyping();
-    setTimeout(function(){
+    messageTimeout3 = setTimeout(function(){
         om.stopTyping();
         if ( isBotActive && isRoomActive ){
             console.log("Reply Sent");
@@ -132,7 +133,7 @@ om.on('gotMessage',function(msg){
     };
     if ( spamEntries.indexOf(msg)> -1 ){
         omegle_bot.emit("events", { event: "Disconnected from spam bot" });
-        om.disconnect();
+        reconnect();
     }
     else if ( isBotActive && isRoomActive ){
         customBot.resolve(chatId, msg, resolveStrangerMessage);        
@@ -153,9 +154,11 @@ om.on("typing", function(){
     omegle_bot.emit("events", { event: "stranger is typing..." });
 });
 
+var messageTimeout1, messageTimeout2, messageTimeout3;
+
 om.on("commonLikes", function(likes){
     omegle_bot.emit("events", { event: "common likes: " + likes.join(", ") });
-    setTimeout(function(){
+    messageTimeout1 = setTimeout(function(){
         var followUpMessage;
         if ( likes.length > 1 ){
             followUpMessage = _.sample(["I see you got multiple interests; ", "I see we both like; ", "hey we got this in common; "]) + likes.join(", ");
@@ -166,7 +169,7 @@ om.on("commonLikes", function(likes){
         om.send(followUpMessage);
     }, 2000);
 
-    setTimeout(function(){
+    messageTimeout2 = setTimeout(function(){
         var randomLike = _.sample(likes);
         if ( randomLike in trainingEntries.questions ){
             var pertinentQuestion = trainingEntries.questions[randomLike];
@@ -175,10 +178,18 @@ om.on("commonLikes", function(likes){
         }           
     }, 20 * 1000);
 });
-//Once you're subscribed to all the events that you wish to listen to, 
-//call connect() to connect to Omegle and start looking for a stranger.
+
+var reconnectTimeout;
+
 function reconnect(){
-    om.connect(["politics", "movies", "music", "miami", "broward", "florida", "programming", "developer"]);
+    clearTimeout(messageTimeout1);
+    clearTimeout(messageTimeout2);
+    clearTimeout(messageTimeout3);
+    omegle_bot.emit("events", { event: "Reconnecting in 5s" });
+    reconnectTimeout = setTimeout(function(){
+        om.connect(["politics", "movies", "music", "miami", "broward", "florida", "programming", "developer"]);
+    }, 5000);
+    
 }
 
 var events = require('events');
@@ -194,6 +205,7 @@ Object.assign(omegle_bot,  {
         om.send(text);
     },
     disconnect: function(){
+        clearTimeout(reconnectTimeout);
         om.disconnect();
         omegle_bot.emit("events", { event: "Disconnected from chat" });
     },
@@ -222,6 +234,9 @@ Object.assign(omegle_bot,  {
         var logFolder = "./logs/";
         var logFilePath = path.join(logFolder, chatLogFile);
         fs.writeFileSync(logFilePath, chat, { flag: "w" });
+    },
+    solvedCaptcha: function(solution){
+        om.solveReCAPTCHA(solution);
     }
 });
 

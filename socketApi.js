@@ -26,18 +26,25 @@ io.on('connection', function(socket){
       bot.markSpam(message.text);
     } else if ( message.action == "saveChat" ){
       bot.saveChat(message.chat);
+    } else if ( message.action == "solvedCaptcha"){
+      bot.solvedCaptcha(message.solution);
     }
   });  
 });
 
 bot.on("chat", function(message){
-  console.log("chat", message);
+  //console.log("chat", message);
   io.sockets.emit('chat', message);
 });
 
 bot.on("events", function(event){
-  console.log("events", event);
+  //console.log("events", event);
   io.sockets.emit('event', event);
+});
+
+bot.on("recaptchaRequired", function(challenge){
+  //console.log("recaptchaRequired", challenge);
+  io.sockets.emit('recaptchaRequired', challenge);
 });
 
 module.exports = socketApi;

@@ -1,8 +1,16 @@
-body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+.event {
+  font-style: italic;
+  color: #BBB;
 }
-
-a {
-  color: #00B7FF;
+.chat-message {
+  font-size: 1.1em;
+}
+.chat-message.Bot strong {
+  color: #3080CF;
+}
+.chat-message.Me strong {
+  color: purple;
+}
+.chat-message.Stranger strong {
+  color: orangered;
 }
