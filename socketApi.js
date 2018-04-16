@@ -13,7 +13,7 @@ io.on('connection', function(socket){
     if ( message.action == "connect"){
       bot.reconnect();
     } else if ( message.action == "disconnect"){
-      bot.reconnect();
+      bot.disconnect();
     } else if ( message.action == "message"){
       bot.message(message.text);
     } else if ( message.action == "toggleAI"){

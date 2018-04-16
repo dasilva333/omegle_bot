@@ -128,9 +128,10 @@
         var chatLogSection = $("#chatLog");
         self.socket.on('event', function(event){
           console.log("event", event);
-          if ( event.event.indexOf("connected to stranger") > -1 && self.chatLog() != "" ){
-            self.socket.emit("message",{ action:"saveChat", chat: self.chatLog() });
+          if ( event.event.indexOf("connected to stranger") > -1 ){
             self.chatLog("");
+          } else if ( event.event.toLowerCase().indexOf("disconnected to stranger") > -1 && self.chatLog().indexOf("Stranger") > -1 ){
+            self.socket.emit("message",{ action:"saveChat", chat: self.chatLog() });
           }
           self.chatLog(self.chatLog() + eventTemplate(event));
           chatLogSection.scrollTop(chatLogSection[0].scrollHeight);
@@ -153,16 +154,19 @@
 
       this.disconnect = function(){
           console.log("emit disconnect");
+          $("#customMessage").focus();
           self.socket.emit("message", { "action": "disconnect" });
       };
 
       this.toggleConnection = function(){
           console.log("emit connect");
+          $("#customMessage").focus();
           self.socket.emit("message", { "action": "connect" });
       };
 
       this.toggleAI = function(){
           console.log("emit toggleAI");
+          $("#customMessage").focus();
           self.socket.emit("message", { "action": "toggleAI" });
       };
 
@@ -182,7 +186,7 @@
           <p class="card-text" id="chatLog" data-bind="html: chatLog" style="min-height: 250px; height: 700px; overflow-y: scroll;"></p>
         </div>
         <div class="card-footer">
-            <input type="text" data-bind="value: customMessage, event: { keyup: messageEventHandler }" class="form-control">
+            <input type="text" id="customMessage" data-bind="value: customMessage, event: { keyup: messageEventHandler }" class="form-control">
         </div>
         <div class="card-header">          
             <button class="btn btn-default" data-bind="click: toggleConnection">Connect</button>

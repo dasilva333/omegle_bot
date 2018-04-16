@@ -144,7 +144,7 @@ om.on('strangerDisconnected',function(){
     console.log('stranger disconnected.');
     chatId++;
     isRoomActive = false;
-    omegle_bot.emit("events", { event: 'stranger disconnected.' });
+    omegle_bot.emit("events", { event: "Stramger disconnected from chat" });
     reconnect();
 });
 
@@ -173,7 +173,7 @@ om.on("commonLikes", function(likes){
             omegle_bot.emit("chat", { source: "Bot", message: pertinentQuestion });
             om.send(pertinentQuestion);
         }           
-    }, 15 * 1000);
+    }, 20 * 1000);
 });
 //Once you're subscribed to all the events that you wish to listen to, 
 //call connect() to connect to Omegle and start looking for a stranger.
@@ -195,15 +195,20 @@ Object.assign(omegle_bot,  {
     },
     disconnect: function(){
         om.disconnect();
+        omegle_bot.emit("events", { event: "Disconnected from chat" });
     },
     reconnect: function(){
         reconnect();
     },
     stopTyping: function(){
-        om.stopTyping();
+        if ( isRoomActive ){
+            om.stopTyping();
+        }        
     },
     startTyping: function(){
-        om.startTyping();
+        if (isRoomActive){
+            om.startTyping();
+        }        
     },
     markSpam: function(text){
         spamEntries.push(text);      
