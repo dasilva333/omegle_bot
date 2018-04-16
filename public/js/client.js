@@ -6,6 +6,7 @@ var omegleBot = new (function(){
     this.chatLog = ko.observable("");
     this.customMessage = ko.observable("");
     this.connected = ko.observable(false);
+    this.aiBotEnabled = ko.observable(false);
 
     var hidden, visibilityState, visibilityChange, focused = true;
 
@@ -99,6 +100,11 @@ var omegleBot = new (function(){
 
       self.socket.on('connection', function(socket){
         console.log('connected');
+      });
+
+      self.socket.on("status", function(response){
+        console.log("status", response);
+        self.aiBotEnabled(response.aiBotEnabled);
       });
 
       var chatLogSection = $("#chatLog");

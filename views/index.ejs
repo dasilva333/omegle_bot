@@ -27,9 +27,14 @@
             <input type="text" id="customMessage" data-bind="value: customMessage, event: { keyup: messageEventHandler }" class="form-control">
         </div>
         <div class="card-header">          
-            <button class="btn btn-default" data-bind="click: toggleConnection">Connect</button>
-            <button class="btn btn-default" data-bind="click: disconnect">Disconnect</button>
-            <button class="btn btn-default" data-bind="click: toggleAI">Toggle Bot</button>
+            <button class="btn btn-success" data-bind="click: toggleConnection">Connect</button>
+            <button class="btn btn-warning" data-bind="click: disconnect">Disconnect</button>
+            <button class="btn btn-primary" data-bind="click: toggleAI">
+                <span data-bind="if: aiBotEnabled">Disable</span>
+                <span data-bind="if: !aiBotEnabled()">Enable</span>
+                Bot
+            </button>
+            <a class="btn btn-info" href="/logs">View Logs</a>
           </div>
       </div>
   </body>

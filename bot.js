@@ -164,20 +164,18 @@ om.on("commonLikes", function(likes){
     messageTimeout1 = setTimeout(function(){
         var followUpMessage;
         if ( likes.length > 1 ){
-            followUpMessage = _.sample(["I see you got multiple interests; ", "I see we both like; ", "hey we got this in common; "]) + likes.join(", ");
+            followUpMessage = _.sample(["I see you got multiple interests; ", "I see we both like; ", "hey we got this in common; "]) + _.first(likes, 3).join(", ");
         } else {
             followUpMessage = _.sample(["you like ", "i see we both like ", "", "I see we're both interested in "]) + _.first(likes) + "?";
         }
-        omegle_bot.emit("chat", { source: "Bot", message: followUpMessage });
-        om.send(followUpMessage);
+        simulateReply(followUpMessage);
     }, 2000);
 
     messageTimeout2 = setTimeout(function(){
         var randomLike = _.sample(likes);
         if ( randomLike in trainingEntries.questions ){
             var pertinentQuestion = trainingEntries.questions[randomLike];
-            omegle_bot.emit("chat", { source: "Bot", message: pertinentQuestion });
-            om.send(pertinentQuestion);
+            simulateReply(pertinentQuestion);
         }           
     }, 30 * 1000);
 });
@@ -204,6 +202,7 @@ Object.assign(omegle_bot,  {
     toggleAI: function(){
         isBotActive = !isBotActive;
         omegle_bot.emit("events", { event: 'Bot is now ' + (isBotActive ? "active" : "disabled") });
+        omegle_bot.emit("status", omegle_bot.getStatus());
     }, 
     message: function(text){
         omegle_bot.emit("chat", { source: "Me", message: text });
@@ -261,6 +260,11 @@ Object.assign(omegle_bot,  {
         setTimeout(function(){
             reconnect();
         }, 2000);
+    },
+    getStatus: function(){
+        return {
+            aiBotEnabled: isBotActive
+        };
     }
 });
 

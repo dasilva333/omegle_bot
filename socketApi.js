@@ -8,6 +8,7 @@ socketApi.io = io;
 
 io.on('connection', function(socket){
   console.log('A user connected');
+  io.sockets.emit("status", bot.getStatus());
   socket.on("message", function(message){
     console.log("message", message);
     if ( message.action == "connect"){
@@ -54,5 +55,10 @@ bot.on("recaptchaRequired", function(challenge){
 bot.on("chatLogs", function(files){
   io.sockets.emit("chatLogs", files);
 });
+
+bot.on("status", function(status){
+  io.sockets.emit("status", status);
+});
+
 
 module.exports = socketApi;
