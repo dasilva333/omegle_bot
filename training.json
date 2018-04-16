@@ -1,0 +1,18 @@
+{
+    "topics": {
+        "age": ["how old are you", "age"],
+        "name": [ "what is your name", "what are you called", "name?"],
+        "location": ["where are you", "where you from", "where raised", "grow up"],
+        "gender": ["m", "m/f?", "m/f"],
+        "person": ["asl", "a.s.l."],
+        "origin": ["where were you born", "born", "birthplace"]
+    },
+    "skills": {
+        "age": "I am age-less for I am a bot, my master however is 32 years old",
+        "name": "My master's name is Richard, he programmed me",
+        "location": "i live in the cloud however my master lives in Sunrise, raised in Florida",
+        "gender": "my master is a guy, very creative genius type guy that brought me to life",
+        "person": "my master's name is Richard, he is 32 years old and lives in Florida",
+        "origin": "My master was originally born in Venezuela however he lives in Florida, USA since he was a young boy"
+    }
+}
