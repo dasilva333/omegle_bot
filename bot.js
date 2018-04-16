@@ -197,6 +197,7 @@ function reconnect(){
 
 var events = require('events');
 var omegle_bot = new events.EventEmitter();
+var logFolder = "./logs/";
 
 Object.assign(omegle_bot,  {
     toggleAI: function(){
@@ -230,11 +231,23 @@ Object.assign(omegle_bot,  {
         fs.writeFileSync(spamFile, JSON.stringify(spamEntries));
         omegle_bot.emit("events", { event: "Entry added as spam: " + text });
     },
+    readLog: function(fileName){
+        omegle_bot.emit("chatLogs", { log: fs.readFileSync(path.join(logFolder, fileName)).toString("utf8"), name: fileName });
+    },
+    listChats: function(){
+        var files = _.map(fs.readdirSync(logFolder), function(file){
+          return {
+              name: file,
+              size: fs.statSync(path.join(logFolder, file)).size
+          }  
+        });
+        console.log("files", files);
+        omegle_bot.emit("chatLogs", { files: files });
+    },
     saveChat: function(chat){
         var todayDate = new Date();
         var formattedDate = todayDate.toISOString().replace(/\:/g,"_").replace(/\./g,"_");
-        var chatLogFile = "chats_" + formattedDate + ".html";
-        var logFolder = "./logs/";
+        var chatLogFile = "chats_" + formattedDate + ".html";        
         var logFilePath = path.join(logFolder, chatLogFile);
         fs.writeFileSync(logFilePath, chat, { flag: "w" });
     },

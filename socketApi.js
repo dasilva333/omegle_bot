@@ -28,6 +28,10 @@ io.on('connection', function(socket){
       bot.saveChat(message.chat);
     } else if ( message.action == "solvedCaptcha"){
       bot.solvedCaptcha(message.solution);
+    } else if ( message.action == "requestLogs" ){
+      bot.listChats();
+    } else if ( message.action == "requestLog" ){
+      bot.readLog(message.logName);
     }
   });  
 });
@@ -45,6 +49,10 @@ bot.on("events", function(event){
 bot.on("recaptchaRequired", function(challenge){
   //console.log("recaptchaRequired", challenge);
   io.sockets.emit('recaptchaRequired', challenge);
+});
+
+bot.on("chatLogs", function(files){
+  io.sockets.emit("chatLogs", files);
 });
 
 module.exports = socketApi;

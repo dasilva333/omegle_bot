@@ -3,7 +3,7 @@
         "age": ["how old are you", "age"],
         "name": [ "what is your name", "what are you called", "name?"],
         "location": ["where are you", "where you from", "where raised", "grow up", "you from"],
-        "gender": ["m", "m/f?", "m/f", "m", "are you male", "are you female"],
+        "gender": ["m", "m/f?", "m/f", "m", "are you male", "are you female", "I'm male", "Im male", "I'm a male", "are you a guy"],
         "person": ["asl", "a.s.l."],
         "origin": ["where were you born", "born", "birthplace"],
         "chatting": ["why are you here"],

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Omegle Chat Logs</title>
+    <link rel="stylesheet" href="https://bootswatch.com/4/lumen/bootstrap.min.css">
+    <link rel="stylesheet" href="/stylesheets/style.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.2/knockout-min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js" integrity="sha256-WPeFPWD3PZQUDrpFnDM1N2KadNVwCfNS4cCZ78b76T8=" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore.js" integrity="sha256-SzKOQsVYGX1bmddyfPzGC6yXY/rWYGUSMOi6+T9gZ+0=" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="/js/logs.js"></script>
+  </head>
+  <body>
+    <div class="container">
+        <ul class="list-group" data-bind="foreach: logFiles" style="list-style: none">
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <a data-bind="attr: { href: '#'+name.split('.')[0] }, click: $parent.viewLog"><span data-bind="text: name"></span></a>
+            <span class="badge badge-primary badge-pill" data-bind="text: size"></span>
+          </li>
+          <li data-bind="if: $parent.logContent(name)">
+            <p></p>
+            <div class="card border-primary">
+                <div class="card-body" data-bind="html: $parent.logContent(name)().log">
+                </div>
+              </div>
+          </li>
+        </ul>
+    </div>    
+  </body>
+</html>
