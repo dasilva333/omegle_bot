@@ -71,6 +71,7 @@ om.on("recaptchaRequired", function(challenge){
 
 var isRoomActive = false;
 var messageReceived = false;
+var idleTimeout;
 //emitted when you're connected to a stranger
 om.on('connected',function(){    
     console.log("connected to stranger");
@@ -83,7 +84,7 @@ om.on('connected',function(){
         omegle_bot.emit("chat", { source: "Bot", message: initialMessage });
         om.send(initialMessage); //used to send a message to the stranger
     },1000);    
-    setTimeout(function(){
+    idleTimeout = setTimeout(function(){
         if ( !messageReceived && isRoomActive ){
             omegle_bot.emit("events", {event: "disconnected after 30s timeout"});
             reconnect();
@@ -145,12 +146,14 @@ om.on('strangerDisconnected',function(){
     console.log('stranger disconnected.');
     chatId++;
     isRoomActive = false;
-    omegle_bot.emit("events", { event: "Stramger disconnected from chat" });
+    omegle_bot.emit("events", { event: "Stranger disconnected from chat" });
     reconnect();
 });
 
 om.on("typing", function(){
     console.log("stranger is typing...");
+    //if the stranger starts typing clear out the 30s timer
+    clearTimeout(idleTimeout);
     omegle_bot.emit("events", { event: "stranger is typing..." });
 });
 
@@ -225,7 +228,7 @@ Object.assign(omegle_bot,  {
     markSpam: function(text){
         spamEntries.push(text);      
         fs.writeFileSync(spamFile, JSON.stringify(spamEntries));
-        omegle_bot.emit('event', { event: "Entry added as spam: " + text });
+        omegle_bot.emit("events", { event: "Entry added as spam: " + text });
     },
     saveChat: function(chat){
         var todayDate = new Date();
@@ -237,6 +240,9 @@ Object.assign(omegle_bot,  {
     },
     solvedCaptcha: function(solution){
         om.solveReCAPTCHA(solution);
+        setTimeout(function(){
+            reconnect();
+        }, 2000);
     }
 });
 

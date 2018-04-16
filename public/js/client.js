@@ -117,7 +117,7 @@ var omegleBot = new (function(){
         console.log("event", event);
         if ( event.event.indexOf("connected to stranger") > -1 ){
           self.chatLog("");
-        } else if ( event.event.toLowerCase().indexOf("disconnected to stranger") > -1 && self.chatLog().indexOf("Stranger") > -1 ){
+        } else if ( event.event.toLowerCase().indexOf("disconnected from chat") > -1 && self.chatLog().indexOf("Stranger") > -1 ){
           self.socket.emit("message",{ action:"saveChat", chat: self.chatLog() });
         }
         self.chatLog(self.chatLog() + eventTemplate(event));
@@ -129,7 +129,7 @@ var omegleBot = new (function(){
         if ( chat.source == "Stranger"){
           self.chatLog(self.chatLog() + strangerTemplate(chat));
           if (!focused){
-            document.title = "-New Message-";
+            document.title = "-New Message-";            
           }
         } else {
           self.chatLog(self.chatLog() + messageTemplate(chat));
