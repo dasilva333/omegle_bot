@@ -25,7 +25,7 @@ io.on('connection', function(socket){
     } else if ( message.action == "markSpam"){
       bot.markSpam(message.text);
     } else if ( message.action == "saveChat" ){
-      
+      bot.saveChat(message.chat);
     }
   });  
 });

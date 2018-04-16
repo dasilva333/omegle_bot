@@ -2,6 +2,7 @@ var unirest = require("unirest");
 var Omegle = require('omegle-node');
 var _ = require("lodash");
 var fs = require("fs");
+var path = require("path");
 var om = new Omegle(); //create an instance of `Omegle`
 
 // Core dependency
@@ -27,14 +28,14 @@ var trainingEntries = JSON.parse(fs.readFileSync(trainingFile));
 
 _.each(trainingEntries.topics, function(questions, type){
     _.each(questions, function(question){
-        console.log("training-topic", type, "for", question);
+        //console.log("training-topic", type, "for", question);
         customBot.train( type, question, _.noop );
     });
 });
 
 
 _.each(trainingEntries.skills, function(answer, topic){
-    console.log("topic-skill", topic, "answer", answer)
+    //console.log("topic-skill", topic, "answer", answer)
     customBot.addSkill(new Skill(topic + '_skill', topic, function(context, request, response, next) {
         response.message = new SingleLineMessage(answer);
         next();
@@ -43,7 +44,7 @@ _.each(trainingEntries.skills, function(answer, topic){
 
 var spamFile = "spam.json";
 var spamEntries = JSON.parse(fs.readFileSync(spamFile));
-console.log("spam", spamEntries);
+//console.log("spam", spamEntries);
 
 //This will print any errors that might get thrown by functions
 om.on('omerror',function(err){
@@ -63,6 +64,9 @@ om.on('waiting', function(){
     console.log('waiting for a stranger.');    
 });
 
+om.on("recaptchaRequired", function(challenge){
+    console.log("recaptchaRequired", challenge);
+});
 
 var isRoomActive = false;
 var messageReceived = false;
@@ -152,15 +156,29 @@ om.on("typing", function(){
 om.on("commonLikes", function(likes){
     omegle_bot.emit("events", { event: "common likes: " + likes.join(", ") });
     setTimeout(function(){
-        var followUpMessage = _.sample(["you like ", "what do you like about ", "", "whats your favorite subject on "]) + _.first(likes) + "?";
+        var followUpMessage;
+        if ( likes.length > 1 ){
+            followUpMessage = _.sample(["I see you got multiple interests; ", "I see we both like; ", "hey we got this in common; "]) + likes.join(", ");
+        } else {
+            followUpMessage = _.sample(["you like ", "what do you like about ", "", "whats your favorite thing about "]) + _.first(likes) + "?";
+        }
         omegle_bot.emit("chat", { source: "Bot", message: followUpMessage });
         om.send(followUpMessage);
-    }, 2000);    
+    }, 2000);
+
+    setTimeout(function(){
+        var randomLike = _.sample(likes);
+        if ( randomLike in trainingEntries.questions ){
+            var pertinentQuestion = trainingEntries.questions[randomLike];
+            omegle_bot.emit("chat", { source: "Bot", message: pertinentQuestion });
+            om.send(pertinentQuestion);
+        }           
+    }, 15 * 1000);
 });
 //Once you're subscribed to all the events that you wish to listen to, 
 //call connect() to connect to Omegle and start looking for a stranger.
 function reconnect(){
-    om.connect(["politics", "movies", "music", "miami", "broward", "florida"]);
+    om.connect(["politics", "movies", "music", "miami", "broward", "florida", "programming", "developer"]);
 }
 
 var events = require('events');
@@ -191,6 +209,14 @@ Object.assign(omegle_bot,  {
         spamEntries.push(text);      
         fs.writeFileSync(spamFile, JSON.stringify(spamEntries));
         omegle_bot.emit('event', { event: "Entry added as spam: " + text });
+    },
+    saveChat: function(chat){
+        var todayDate = new Date();
+        var formattedDate = todayDate.toISOString().replace(/\:/g,"_").replace(/\./g,"_");
+        var chatLogFile = "chats_" + formattedDate + ".html";
+        var logFolder = "./logs/";
+        var logFilePath = path.join(logFolder, chatLogFile);
+        fs.writeFileSync(logFilePath, chat, { flag: "w" });
     }
 });
 

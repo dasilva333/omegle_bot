@@ -36,6 +36,35 @@
       this.customMessage = ko.observable("");
       this.connected = ko.observable(false);
 
+      var hidden, visibilityState, visibilityChange, focused = true;
+
+      if (typeof document.hidden !== "undefined") {
+        hidden = "hidden", visibilityChange = "visibilitychange", visibilityState = "visibilityState";
+      } else if (typeof document.msHidden !== "undefined") {
+        hidden = "msHidden", visibilityChange = "msvisibilitychange", visibilityState = "msVisibilityState";
+      }
+
+      var document_hidden = document[hidden];
+
+      document.addEventListener(visibilityChange, function() {
+        if(document_hidden != document[hidden]) {
+          if(document[hidden]) {
+            // Document hidden
+            focused = false;
+          } else {
+            // Document shown
+            focused = true;
+            document.title = "Omegle Chat";
+          }
+
+          document_hidden = document[hidden];
+        }
+      });
+
+      this.startTyping = _.throttle(function(){
+        self.socket.emit("message", { action: "startTyping" });
+      });
+
       this.messageEventHandler = function(viewModel, event){
         if ( event.keyCode == 13 ){
           if ( self.customMessage() != "" ){
@@ -44,7 +73,7 @@
           }          
           self.socket.emit("message", { action: "stopTyping" });
         } else {
-          self.socket.emit("message", { action: "startTyping" });
+          self.startTyping();
         }
       };
 
@@ -64,8 +93,8 @@
       var dropdown = $("#dropdownOptions");
       this.options = function(anchor){
         self.activeMessage = anchor.innerHTML;        
-        dropdown.toggle();
-        dropdown.position({
+        $("#dropdownOptions").toggle();
+        $("#dropdownOptions").position({
           of: $( anchor ),
           my: "left top",
           at: "right bottom"
@@ -77,8 +106,13 @@
         //self.socket.emit("message", { "action": "trainResponse", "text": self.activeMessage });
       };
 
+      this.openLink = function(){
+        $("#dropdownOptions").hide();
+        window.open(self.activeMessage, "_blank");
+      };
+
       this.markSpam = function(){
-        dropdown.hide();
+        $("#dropdownOptions").hide();
         self.socket.emit("message", { "action": "markSpam", "text": self.activeMessage });
       };
 
@@ -94,7 +128,7 @@
         var chatLogSection = $("#chatLog");
         self.socket.on('event', function(event){
           console.log("event", event);
-          if ( event.event.indexOf("connected to stranger") > -1){
+          if ( event.event.indexOf("connected to stranger") > -1 && self.chatLog() != "" ){
             self.socket.emit("message",{ action:"saveChat", chat: self.chatLog() });
             self.chatLog("");
           }
@@ -106,6 +140,9 @@
           console.log("chat", chat);
           if ( chat.source == "Stranger"){
             self.chatLog(self.chatLog() + strangerTemplate(chat));
+            if (!focused){
+              document.title = "-New Message-";
+            }
           } else {
             self.chatLog(self.chatLog() + messageTemplate(chat));
           }          
@@ -137,11 +174,12 @@
       <div id="dropdownOptions" class="dropdown-menu" aria-labelledby="btnGroupDrop1" x-placement="bottom-start" style="position: absolute; transform: translate3d(0px, 34px, 0px); top: 0px; left: 0px; will-change: transform;">
         <a class="dropdown-item" data-bind="click: markSpam">Mark as Spam</a>
         <a class="dropdown-item" data-bind="click: train">Train Response</a>
+        <a class="dropdown-item" data-bind="click: openLink">Open Link</a>
       </div>
       <div class="card border-primary col-12">
         <div class="card-body">
           <h4 class="card-title">Chat Log</h4>
-          <p class="card-text" id="chatLog" data-bind="html: chatLog" style="height: 500px; overflow-y: scroll;"></p>
+          <p class="card-text" id="chatLog" data-bind="html: chatLog" style="min-height: 250px; height: 700px; overflow-y: scroll;"></p>
         </div>
         <div class="card-footer">
             <input type="text" data-bind="value: customMessage, event: { keyup: messageEventHandler }" class="form-control">
@@ -152,7 +190,5 @@
             <button class="btn btn-default" data-bind="click: toggleAI">Toggle Bot</button>
           </div>
       </div>
-    
-    
   </body>
 </html>

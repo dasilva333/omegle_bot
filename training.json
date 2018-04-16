@@ -3,9 +3,14 @@
         "age": ["how old are you", "age"],
         "name": [ "what is your name", "what are you called", "name?"],
         "location": ["where are you", "where you from", "where raised", "grow up"],
-        "gender": ["m", "m/f?", "m/f"],
+        "gender": ["m", "m/f?", "m/f", "m", "are you male", "are you female"],
         "person": ["asl", "a.s.l."],
-        "origin": ["where were you born", "born", "birthplace"]
+        "origin": ["where were you born", "born", "birthplace"],
+        "chatting": ["why are you here"],
+        "bot": [ "bot", "are you bot", "are you a bot", "are you real" ],
+        "how_are_you": ["im fine and you", "im good and you", "how are you", "how is it going", "hows it going"],
+        "master": ["master"],
+        "conservative": [ "conservative" ]
     },
     "skills": {
         "age": "I am age-less for I am a bot, my master however is 32 years old",
@@ -13,6 +18,21 @@
         "location": "i live in the cloud however my master lives in Sunrise, raised in Florida",
         "gender": "my master is a guy, very creative genius type guy that brought me to life",
         "person": "my master's name is Richard, he is 32 years old and lives in Florida",
-        "origin": "My master was originally born in Venezuela however he lives in Florida, USA since he was a young boy"
+        "origin": "My master was originally born in Venezuela however he lives in Florida, USA since he was a young boy",
+        "chatting": "My master is looking for fun people to talk to so I'm here to represent him in that question",
+        "bot": "I am Richard's bot, I'm his personal assistant for finding friends",
+        "how_are_you": "My master is doing fine thank you for talking to him",
+        "master": "I am a bot developed by my master to make friends",
+        "conservative": "so what do you think of Trump?"
+    },
+    "questions": {
+        "movies": "whats your favorite movie?",
+        "politics": "whats your political ideology?",
+        "music": "whats your favorite type of music? im personally a big fan of electronic music.",
+        "miami": "cool someone from miami, where u from? I'm over in Broward, Sunrise.",
+        "broward": "hey I see you're from broward too! Im from Sunrise wbu?",
+        "florida": "Fellow Floridian, where u from Stranger? Im from South Florida.",
+        "programming": "What language do you like programming in?",
+        "developer": "What do you usually develop?"
     }
 }
