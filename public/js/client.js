@@ -7,6 +7,7 @@ var omegleBot = new (function(){
     this.customMessage = ko.observable("");
     this.connected = ko.observable(false);
     this.aiBotEnabled = ko.observable(false);
+    this.strangerIsTyping = ko.observable(false);
 
     var hidden, visibilityState, visibilityChange, focused = true;
 
@@ -120,19 +121,23 @@ var omegleBot = new (function(){
       });
       
       self.socket.on('event', function(event){
-        console.log("event", event);
         if ( event.event.indexOf("connected to stranger") > -1 ){
           self.chatLog("");
         } else if ( event.event.toLowerCase().indexOf("disconnected from chat") > -1 && self.chatLog().indexOf("Stranger") > -1 ){
           self.socket.emit("message",{ action:"saveChat", chat: self.chatLog() });
+          self.strangerIsTyping(false);
         }
-        self.chatLog(self.chatLog() + eventTemplate(event));
-        chatLogSection.scrollTop(chatLogSection[0].scrollHeight);
+        if ( event.event.indexOf("stranger_typing") > -1 ){
+          self.strangerIsTyping(true);
+        } else {
+          self.chatLog(self.chatLog() + eventTemplate(event));
+          chatLogSection.scrollTop(chatLogSection[0].scrollHeight);
+        }        
       });
 
       self.socket.on('chat', function(chat){
-        console.log("chat", chat);
         if ( chat.source == "Stranger"){
+          self.strangerIsTyping(false);
           self.chatLog(self.chatLog() + strangerTemplate(chat));
           if (!focused){
             document.title = "-New Message-";            

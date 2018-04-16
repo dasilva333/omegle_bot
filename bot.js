@@ -48,76 +48,104 @@ var spamEntries = JSON.parse(fs.readFileSync(spamFile));
 
 //This will print any errors that might get thrown by functions
 om.on('omerror',function(err){
-    omegle_bot.emit("events", { event: 'error: ' + err });
+    omegle_bot.socket.emit("event", { event: 'error: ' + err });
     console.log('error: ' + err);
 });
 
 //gotID is emitted when you're connected to Omegle 
 om.on('gotID',function(id){
-    omegle_bot.emit("events", { event: 'connected to the server as: ' + id });
+    omegle_bot.socket.emit("event", { event: 'connected to the server as: ' + id });
     console.log('connected to the server as: ' + id);
 });
 
 //waiting is emitted when you're waiting to connect to a stranger
 om.on('waiting', function(){
-    omegle_bot.emit("events", { event: 'waiting for a stranger.' });
+    omegle_bot.socket.emit("event", { event: 'waiting for a stranger.' });
     console.log('waiting for a stranger.');    
 });
 
 om.on("recaptchaRequired", function(challenge){
     console.log("recaptchaRequired", challenge);
-    omegle_bot.emit("recaptchaRequired", { challenge: challenge });
+    omegle_bot.socket.emit("recaptchaRequired", { challenge: challenge });
 });
 
 var isRoomActive = false;
 var messageReceived = false;
+var messagesSent = 0;
+var wpm = 40;
+var wpms = (wpm / 60) * 1000;
+var thinkingDelay = 2500;
+var followUpDelay = 2000;
+var pertinentQuestionDelay = 25 * 1000;
+var reconnectTimeoutDelay = 5000;
+var initialMessageDelay = 500;
+var isBotActive = true;
+var messageQueue = [];
 var idleTimeout;
+var idleTimeoutDelay = 30 * 1000;
+
 //emitted when you're connected to a stranger
 om.on('connected',function(){    
     console.log("connected to stranger");
     isRoomActive = true;
     messageReceived = false;
-    omegle_bot.emit("events", {event: "connected to stranger"});
-    messageTimeout0 = setTimeout(function(){
-        var initialMessage = _.sample(["hi", "hello", "hey", "hi, how are you?", 'Hello, nice to meet you.', 'How are you doing today?']);
-        console.log('Initial Message: ', initialMessage);
-        omegle_bot.emit("chat", { source: "Bot", message: initialMessage });
-        om.send(initialMessage); //used to send a message to the stranger
-    },1000);    
+    messagesSent = 0;
+    omegle_bot.socket.emit("event", {event: "connected to stranger"});
+    var initialMessage = _.sample(["hi", "hello", "hey", "hi, how's it going?", "hi, how are you?", 'nice to meet you.', 'How are you doing today?']);
+    simulateReply(initialMessage, true, initialMessageDelay);
     idleTimeout = setTimeout(function(){
         if ( !messageReceived && isRoomActive ){
-            omegle_bot.emit("events", {event: "disconnected after 30s timeout"});
+            omegle_bot.socket.emit("event", {event: "disconnected after 30s timeout"});
             reconnect();
         }
-    }, 30 * 1000);
+    }, idleTimeoutDelay);
 });
 
-var wpm = 30;
-var wpms = (wpm / 60) * 1000;
-var isBotActive = true;
-
-var simulateReply = function(message){
-    console.log("Reply: ", message); 
-    var typingDelay = 2000 + ((message.split(" ").length -1) * wpms);
-    omegle_bot.emit("events", { event: "Reply in " + typingDelay + "ms - " + message });
-    om.startTyping();
-    messageTimeout3 = setTimeout(function(){
-        om.stopTyping();
-        if ( isBotActive && isRoomActive ){
-            console.log("Reply Sent");
-            omegle_bot.emit("chat", { source: "Bot", message: message });
-            om.send(message); //used to send a message to the stranger                
-        }
-    }, typingDelay);         
+var simulateReply = function(message, required, delay){
+    var additionalDelay = 0 || delay;
+    var typingDelay = additionalDelay + thinkingDelay + ((message.split(" ").length -1) * wpms);
+    omegle_bot.socket.emit("event", { event: (required ? "[Required]" : "") + " Reply in " + (typingDelay/1000).toFixed(1) + "s - " + message });
+    messageQueue.push({ delay: typingDelay, message: message, required: required });            
 };
+
+/* this message queue handler takes care of the array of messages for the current session */
+setInterval(function(){
+    if ( messageQueue.length && isRoomActive ){
+        if ( (messageReceived) || (!messageReceived && messagesSent == 0) ){
+            om.startTyping();
+            messageQueue = _.map(messageQueue, function(item){
+                item.delay = item.delay - 1000;
+                return item;
+            });
+            var isRequired = false;
+            var nextMessage = _.reduce(messageQueue, function(memo, item, index){
+                if ( memo == "" && item.delay <= 0 ) {
+                    memo = item.message;
+                    isRequired = item.required;
+                    messageQueue.splice(index, 1);
+                }    
+                return memo;
+            }, "");
+            if ( nextMessage != "" ){
+                om.stopTyping();
+                if ( (isBotActive && isRoomActive) || (!isBotActive && isRoomActive && isRequired) ){
+                    messagesSent = true;
+                    omegle_bot.socket.emit("chat", { source: "Bot", message: nextMessage });
+                    om.send(nextMessage); //used to send a message to the stranger                
+                } 
+            }
+        }
+    } else if (isRoomActive) {        
+        om.stopTyping();
+    }
+}, 1000);
 
 
 var chatId = 1;
 //emitted when you get a message
-om.on('gotMessage',function(msg){
-    console.log('Stranger: ' + msg);
+om.on('gotMessage', _.throttle(function(msg){
     messageReceived = true;
-    omegle_bot.emit("chat", { source: "Stranger", message: msg });
+    omegle_bot.socket.emit("chat", { source: "Stranger", message: msg });
     var resolveStrangerMessage = function(err, messages) {
         if(err) {
             console.log("unresolved", err.message);
@@ -125,72 +153,62 @@ om.on('gotMessage',function(msg){
             .header("X-Mashape-Key", "8ig3djeVPemshoo2gtXYaWwmFehsp1c6jzvjsnt1iLzIVRjKtF")
             .header("Accept", "application/json")
             .end(function (result) {
-                simulateReply(result.body.cnt);               
+                simulateReply(result.body.cnt, false, 0);               
             });
         }
         else {
-            simulateReply(_.map(messages, 'content').join(", "));
+            simulateReply(_.map(messages, 'content').join(", "), false, 0);
         }    
     };
     if ( spamEntries.indexOf(msg)> -1 ){
-        omegle_bot.emit("events", { event: "Disconnected from spam bot" });
+        omegle_bot.socket.emit("event", { event: "Disconnected from spam bot" });
         reconnect();
     }
     else if ( isBotActive && isRoomActive ){
         customBot.resolve(chatId, msg, resolveStrangerMessage);        
     }    
-});
+}, 5000, { leading: false }));
 
 //emitted when the stranger disconnects
 om.on('strangerDisconnected',function(){
-    console.log('stranger disconnected.');
-    chatId++;
-    isRoomActive = false;
-    omegle_bot.emit("events", { event: "Stranger disconnected from chat" });
+    omegle_bot.socket.emit("event", { event: "Stranger disconnected from chat" });
     reconnect();
 });
 
 om.on("typing", function(){
-    console.log("stranger is typing...");
     //if the stranger starts typing clear out the 30s timer
     clearTimeout(idleTimeout);
-    omegle_bot.emit("events", { event: "stranger is typing..." });
+    omegle_bot.socket.emit("event", { event: "stranger_typing" });
 });
 
-var messageTimeout0, messageTimeout1, messageTimeout2, messageTimeout3;
-
 om.on("commonLikes", function(likes){
-    omegle_bot.emit("events", { event: "common likes: " + likes.join(", ") });
-    messageTimeout1 = setTimeout(function(){
-        var followUpMessage;
-        if ( likes.length > 1 ){
-            followUpMessage = _.sample(["I see you got multiple interests; ", "I see we both like; ", "hey we got this in common; "]) + _.take(likes, 3).join(", ");
-        } else {
-            followUpMessage = _.sample(["you like ", "i see we both like ", "", "I see we're both interested in "]) + _.first(likes) + "?";
-        }
-        simulateReply(followUpMessage);
-    }, 2000);
+    omegle_bot.socket.emit("event", { event: "common likes: " + likes.join(", ") });
+    
+    var followUpMessage;
+    if ( likes.length > 1 ){
+        followUpMessage = _.sample(["I see you got multiple interests; ", "I see we both like; ", "hey we got this in common; "]) + _.take(likes, 2).join(" and ");
+    } else {
+        followUpMessage = _.sample(["you like ", "i see we both like ", "", "I see we're both interested in "]) + _.first(likes) + "?";
+    }
+    simulateReply(followUpMessage, true, followUpDelay);
 
-    messageTimeout2 = setTimeout(function(){
-        var randomLike = _.sample(likes);
-        if ( randomLike in trainingEntries.questions ){
-            var pertinentQuestion = trainingEntries.questions[randomLike];
-            simulateReply(pertinentQuestion);
-        }           
-    }, 30 * 1000);
+    var randomLike = _.sample(likes);
+    if ( randomLike in trainingEntries.questions ){
+        var pertinentQuestion = trainingEntries.questions[randomLike];
+        simulateReply(pertinentQuestion, true, pertinentQuestionDelay);
+    }
 });
 
 var reconnectTimeout;
 
 function reconnect(){
-    clearTimeout(messageTimeout0);
-    clearTimeout(messageTimeout1);
-    clearTimeout(messageTimeout2);
-    clearTimeout(messageTimeout3);
-    omegle_bot.emit("events", { event: "Reconnecting in 5s" });
+    omegle_bot.socket.emit("event", { event: "Reconnecting in 5s" });
     reconnectTimeout = setTimeout(function(){
+        chatId++;
+        isRoomActive = false;
+        messageQueue = [];        
         om.connect(trainingEntries.likes);
-    }, 5000);
+    }, reconnectTimeoutDelay);
     
 }
 
@@ -199,23 +217,24 @@ var omegle_bot = new events.EventEmitter();
 var logFolder = "./logs/";
 
 Object.assign(omegle_bot,  {
+    setSocket: function(socket){
+        omegle_bot.socket = socket;
+    },
     toggleAI: function(){
         isBotActive = !isBotActive;
-        omegle_bot.emit("events", { event: 'Bot is now ' + (isBotActive ? "active" : "disabled") });
-        omegle_bot.emit("status", omegle_bot.getStatus());
+        omegle_bot.socket.emit("event", { event: 'Bot is now ' + (isBotActive ? "active" : "disabled") });
+        omegle_bot.socket.emit("status", omegle_bot.getStatus());
     }, 
     message: function(text){
-        omegle_bot.emit("chat", { source: "Me", message: text });
+        omegle_bot.socket.emit("chat", { source: "Me", message: text });
         om.send(text);
     },
     disconnect: function(){
         clearTimeout(reconnectTimeout);
-        clearTimeout(messageTimeout0);
-        clearTimeout(messageTimeout1);
-        clearTimeout(messageTimeout2);
-        clearTimeout(messageTimeout3);
         om.disconnect();
-        omegle_bot.emit("events", { event: "Disconnected from chat" });
+        chatId++;
+        isRoomActive = false;
+        omegle_bot.socket.emit("event", { event: "Disconnected from chat" });
     },
     reconnect: function(){
         reconnect();
@@ -233,10 +252,10 @@ Object.assign(omegle_bot,  {
     markSpam: function(text){
         spamEntries.push(text);      
         fs.writeFileSync(spamFile, JSON.stringify(spamEntries));
-        omegle_bot.emit("events", { event: "Entry added as spam: " + text });
+        omegle_bot.socket.emit("event", { event: "Entry added as spam: " + text });
     },
     readLog: function(fileName){
-        omegle_bot.emit("chatLogs", { log: fs.readFileSync(path.join(logFolder, fileName)).toString("utf8"), name: fileName });
+        omegle_bot.socket.emit("chatLogs", { log: fs.readFileSync(path.join(logFolder, fileName)).toString("utf8"), name: fileName });
     },
     listChats: function(){
         var files = _.map(fs.readdirSync(logFolder), function(file){
@@ -245,8 +264,7 @@ Object.assign(omegle_bot,  {
               size: fs.statSync(path.join(logFolder, file)).size
           }  
         });
-        console.log("files", files);
-        omegle_bot.emit("chatLogs", { files: files });
+        omegle_bot.socket.emit("chatLogs", { files: files });
     },
     saveChat: function(chat){
         var todayDate = new Date();

@@ -6,11 +6,13 @@ var io = socket_io();
 var socketApi = {};
 socketApi.io = io;
 
+bot.setSocket(io.sockets);
+
 io.on('connection', function(socket){
   console.log('A user connected');
   io.sockets.emit("status", bot.getStatus());
   socket.on("message", function(message){
-    console.log("message", message);
+    //console.log("message", message);
     if ( message.action == "connect"){
       bot.reconnect();
     } else if ( message.action == "disconnect"){
@@ -36,29 +38,5 @@ io.on('connection', function(socket){
     }
   });  
 });
-
-bot.on("chat", function(message){
-  //console.log("chat", message);
-  io.sockets.emit('chat', message);
-});
-
-bot.on("events", function(event){
-  //console.log("events", event);
-  io.sockets.emit('event', event);
-});
-
-bot.on("recaptchaRequired", function(challenge){
-  //console.log("recaptchaRequired", challenge);
-  io.sockets.emit('recaptchaRequired', challenge);
-});
-
-bot.on("chatLogs", function(files){
-  io.sockets.emit("chatLogs", files);
-});
-
-bot.on("status", function(status){
-  io.sockets.emit("status", status);
-});
-
 
 module.exports = socketApi;

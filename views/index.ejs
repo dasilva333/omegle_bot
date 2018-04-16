@@ -25,8 +25,9 @@
         </div>
         <div class="card-footer">
             <input type="text" id="customMessage" data-bind="value: customMessage, event: { keyup: messageEventHandler }" class="form-control">
-        </div>
-        <div class="card-header">          
+            <div>
+              <span class="badge badge-danger" data-bind="if: strangerIsTyping">Stranger is typing...</span>
+            </div>
             <button class="btn btn-success" data-bind="click: toggleConnection">Connect</button>
             <button class="btn btn-warning" data-bind="click: disconnect">Disconnect</button>
             <button class="btn btn-primary" data-bind="click: toggleAI">
