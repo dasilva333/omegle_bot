@@ -164,7 +164,7 @@ om.on("commonLikes", function(likes){
     messageTimeout1 = setTimeout(function(){
         var followUpMessage;
         if ( likes.length > 1 ){
-            followUpMessage = _.sample(["I see you got multiple interests; ", "I see we both like; ", "hey we got this in common; "]) + _.first(likes, 3).join(", ");
+            followUpMessage = _.sample(["I see you got multiple interests; ", "I see we both like; ", "hey we got this in common; "]) + _.take(likes, 3).join(", ");
         } else {
             followUpMessage = _.sample(["you like ", "i see we both like ", "", "I see we're both interested in "]) + _.first(likes) + "?";
         }
@@ -189,7 +189,7 @@ function reconnect(){
     clearTimeout(messageTimeout3);
     omegle_bot.emit("events", { event: "Reconnecting in 5s" });
     reconnectTimeout = setTimeout(function(){
-        om.connect(["politics", "movies", "music", "miami", "broward", "florida", "programming", "developer"]);
+        om.connect(trainingEntries.likes);
     }, 5000);
     
 }
