@@ -14,7 +14,7 @@
   <body>
     <div class="container">
         <ul class="list-group" data-bind="foreach: logFiles" style="list-style: none">
-          <li class="list-group-item d-flex justify-content-between align-items-center">
+          <li class="list-group-item d-flex justify-content-between align-items-center" data-bind="attr: { id: name.split('.')[0] }">
             <a data-bind="attr: { href: '#'+name.split('.')[0] }, click: $parent.viewLog"><span data-bind="text: name"></span></a>
             <span class="badge badge-primary badge-pill" data-bind="text: size"></span>
           </li>

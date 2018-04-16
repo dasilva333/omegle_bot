@@ -78,7 +78,7 @@ om.on('connected',function(){
     isRoomActive = true;
     messageReceived = false;
     omegle_bot.emit("events", {event: "connected to stranger"});
-    setTimeout(function(){
+    messageTimeout0 = setTimeout(function(){
         var initialMessage = _.sample(["hi", "hello", "hey", "hi, how are you?", 'Hello, nice to meet you.', 'How are you doing today?']);
         console.log('Initial Message: ', initialMessage);
         omegle_bot.emit("chat", { source: "Bot", message: initialMessage });
@@ -157,7 +157,7 @@ om.on("typing", function(){
     omegle_bot.emit("events", { event: "stranger is typing..." });
 });
 
-var messageTimeout1, messageTimeout2, messageTimeout3;
+var messageTimeout0, messageTimeout1, messageTimeout2, messageTimeout3;
 
 om.on("commonLikes", function(likes){
     omegle_bot.emit("events", { event: "common likes: " + likes.join(", ") });
@@ -166,7 +166,7 @@ om.on("commonLikes", function(likes){
         if ( likes.length > 1 ){
             followUpMessage = _.sample(["I see you got multiple interests; ", "I see we both like; ", "hey we got this in common; "]) + likes.join(", ");
         } else {
-            followUpMessage = _.sample(["you like ", "what do you like about ", "", "whats your favorite thing about "]) + _.first(likes) + "?";
+            followUpMessage = _.sample(["you like ", "i see we both like ", "", "I see we're both interested in "]) + _.first(likes) + "?";
         }
         omegle_bot.emit("chat", { source: "Bot", message: followUpMessage });
         om.send(followUpMessage);
@@ -179,12 +179,13 @@ om.on("commonLikes", function(likes){
             omegle_bot.emit("chat", { source: "Bot", message: pertinentQuestion });
             om.send(pertinentQuestion);
         }           
-    }, 20 * 1000);
+    }, 30 * 1000);
 });
 
 var reconnectTimeout;
 
 function reconnect(){
+    clearTimeout(messageTimeout0);
     clearTimeout(messageTimeout1);
     clearTimeout(messageTimeout2);
     clearTimeout(messageTimeout3);
@@ -210,6 +211,10 @@ Object.assign(omegle_bot,  {
     },
     disconnect: function(){
         clearTimeout(reconnectTimeout);
+        clearTimeout(messageTimeout0);
+        clearTimeout(messageTimeout1);
+        clearTimeout(messageTimeout2);
+        clearTimeout(messageTimeout3);
         om.disconnect();
         omegle_bot.emit("events", { event: "Disconnected from chat" });
     },

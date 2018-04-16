@@ -2,7 +2,7 @@
     "topics": {
         "age": ["how old are you", "age"],
         "name": [ "what is your name", "what are you called", "name?"],
-        "location": ["where are you", "where you from", "where raised", "grow up", "you from"],
+        "location": ["where are you", "where you from", "where are you from", "where raised", "grow up", "you from"],
         "gender": ["m", "m/f?", "m/f", "m", "are you male", "are you female", "I'm male", "Im male", "I'm a male", "are you a guy"],
         "person": ["asl", "a.s.l."],
         "origin": ["where were you born", "born", "birthplace"],
@@ -17,7 +17,7 @@
         "name": "My master's name is Richard, he programmed me",
         "location": "i live in the cloud however my master lives in Sunrise, raised in Florida",
         "gender": "my master is a guy, very creative genius type guy that brought me to life",
-        "person": "my master's name is Richard, he is 32 years old and lives in Florida",
+        "person": "my master's name is Richard, he is 32 years old and lives in Florida, hbu?",
         "origin": "My master was originally born in Venezuela however he lives in Florida, USA since he was a young boy",
         "chatting": "My master is looking for fun people to talk to so I'm here to represent him in that question",
         "bot": "I am Richard's bot, I'm his personal assistant for finding friends",
